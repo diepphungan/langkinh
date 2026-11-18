@@ -1,0 +1,386 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId && request.auth.token.email_verified == true;
+    }
+
+    function isValidScore(val) {
+      return val is number && val >= 0 && val <= 100;
+    }
+
+    function isValidNewsArticle(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'title',
+        'url',
+        'sourceName',
+        'sourceDomain',
+        'category',
+        'publishedRelative',
+        'summary',
+        'keyTakeaway',
+        'sentimentLabel',
+        'sentimentPositive',
+        'sentimentNeutral',
+        'sentimentNegative',
+        'fetchedMethod',
+        'notes',
+        'status',
+        'createdAt',
+        'updatedAt'
+      ]) && data.keys().hasOnly([
+        'ownerId',
+        'title',
+        'url',
+        'sourceName',
+        'sourceDomain',
+        'category',
+        'publishedRelative',
+        'summary',
+        'keyTakeaway',
+        'sentimentLabel',
+        'sentimentPositive',
+        'sentimentNeutral',
+        'sentimentNegative',
+        'fetchedMethod',
+        'notes',
+        'tags',
+        'status',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 300 &&
+      data.url is string && data.url.size() >= 8 && data.url.size() <= 1000 && data.url.matches('^https?://.+$') &&
+      data.sourceName is string && data.sourceName.size() >= 1 && data.sourceName.size() <= 120 &&
+      data.sourceDomain is string && data.sourceDomain.size() >= 1 && data.sourceDomain.size() <= 120 &&
+      data.category is string && data.category.size() >= 1 && data.category.size() <= 80 &&
+      data.publishedRelative is string && data.publishedRelative.size() <= 80 &&
+      data.summary is string && data.summary.size() <= 1500 &&
+      data.keyTakeaway is string && data.keyTakeaway.size() <= 600 &&
+      data.sentimentLabel is string && data.sentimentLabel in ['Tích cực', 'Tiêu cực', 'Trung lập'] &&
+      isValidScore(data.sentimentPositive) &&
+      isValidScore(data.sentimentNeutral) &&
+      isValidScore(data.sentimentNegative) &&
+      data.fetchedMethod is string && data.fetchedMethod.size() >= 1 && data.fetchedMethod.size() <= 40 &&
+      data.notes is string && data.notes.size() <= 1000 &&
+      (!('tags' in data) || (data.tags is list && data.tags.size() <= 12 && (data.tags.size() == 0 || (data.tags[0] is string && data.tags[0].size() >= 1 && data.tags[0].size() <= 40)))) &&
+      data.status is string && data.status in ['unread', 'reviewed', 'archived'] &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidCustomSource(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'name',
+        'url',
+        'domain',
+        'defaultCategory',
+        'enabled',
+        'createdAt',
+        'updatedAt'
+      ]) && data.keys().hasOnly([
+        'ownerId',
+        'name',
+        'url',
+        'domain',
+        'defaultCategory',
+        'enabled',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+      data.url is string && data.url.size() >= 8 && data.url.size() <= 1000 && data.url.matches('^https?://.+$') &&
+      data.domain is string && data.domain.size() >= 1 && data.domain.size() <= 120 &&
+      data.defaultCategory is string && data.defaultCategory.size() >= 1 && data.defaultCategory.size() <= 80 &&
+      data.enabled is bool &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidWatchlistItem(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'symbol',
+        'exchange',
+        'companyName',
+        'priceChangeThresholdPct',
+        'targetPrice',
+        'stopLossPrice',
+        'newsSensitivity',
+        'notes',
+        'createdAt',
+        'updatedAt'
+      ]) && data.keys().hasOnly([
+        'ownerId',
+        'symbol',
+        'exchange',
+        'companyName',
+        'priceChangeThresholdPct',
+        'targetPrice',
+        'stopLossPrice',
+        'newsSensitivity',
+        'notes',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid &&
+      data.symbol is string && data.symbol.size() >= 1 && data.symbol.size() <= 12 && data.symbol.matches('^[A-Z0-9]+$') &&
+      data.exchange is string && data.exchange in ['HOSE', 'HNX', 'UPCOM'] &&
+      data.companyName is string && data.companyName.size() <= 120 &&
+      data.priceChangeThresholdPct is number && data.priceChangeThresholdPct >= 0 && data.priceChangeThresholdPct <= 50 &&
+      data.targetPrice is number && data.targetPrice >= 0 && data.targetPrice <= 10000000 &&
+      data.stopLossPrice is number && data.stopLossPrice >= 0 && data.stopLossPrice <= 10000000 &&
+      data.newsSensitivity is string && data.newsSensitivity in ['bearish', 'bullish', 'all'] &&
+      data.notes is string && data.notes.size() <= 400 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidFinanceAlert(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'symbol',
+        'severity',
+        'title',
+        'message',
+        'triggerType',
+        'articleUrl',
+        'priceSnapshot',
+        'changePctSnapshot',
+        'read',
+        'createdAt',
+        'updatedAt'
+      ]) && data.keys().hasOnly([
+        'ownerId',
+        'symbol',
+        'severity',
+        'title',
+        'message',
+        'triggerType',
+        'articleUrl',
+        'priceSnapshot',
+        'changePctSnapshot',
+        'read',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid &&
+      data.symbol is string && data.symbol.size() >= 1 && data.symbol.size() <= 12 &&
+      data.severity is string && data.severity in ['critical', 'warning', 'opportunity'] &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 240 &&
+      data.message is string && data.message.size() <= 800 &&
+      data.triggerType is string && data.triggerType.size() >= 1 && data.triggerType.size() <= 40 &&
+      data.articleUrl is string && data.articleUrl.size() <= 1000 &&
+      data.priceSnapshot is number && data.priceSnapshot >= 0 &&
+      data.changePctSnapshot is number && data.changePctSnapshot >= -100 && data.changePctSnapshot <= 100 &&
+      data.read is bool &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidNewsroomEdition(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'editionKey',
+        'dateStr',
+        'editionType',
+        'editionLabel',
+        'windowLabel',
+        'mode',
+        'executiveHighlightsJson',
+        'quickMetricsJson',
+        'storiesJson',
+        'totalCandidatesReviewed',
+        'createdAt',
+        'updatedAt'
+      ]) && data.keys().hasOnly([
+        'ownerId',
+        'editionKey',
+        'dateStr',
+        'editionType',
+        'editionLabel',
+        'windowLabel',
+        'mode',
+        'executiveHighlightsJson',
+        'quickMetricsJson',
+        'storiesJson',
+        'totalCandidatesReviewed',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid &&
+      data.editionKey is string && data.editionKey.size() >= 1 && data.editionKey.size() <= 40 && data.editionKey.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.dateStr is string && data.dateStr.size() == 10 &&
+      data.editionType is string && data.editionType in ['morning', 'afternoon'] &&
+      data.editionLabel is string && data.editionLabel.size() >= 1 && data.editionLabel.size() <= 120 &&
+      data.windowLabel is string && data.windowLabel.size() <= 160 &&
+      data.mode is string && data.mode in ['gemini', 'quantitative'] &&
+      data.executiveHighlightsJson is string && data.executiveHighlightsJson.size() <= 2000 &&
+      data.quickMetricsJson is string && data.quickMetricsJson.size() <= 1200 &&
+      data.storiesJson is string && data.storiesJson.size() <= 16000 &&
+      data.totalCandidatesReviewed is number && data.totalCandidatesReviewed >= 0 && data.totalCandidatesReviewed <= 5000 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidUserNewsSourcesConfig(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'activeTopicPacks',
+        'customKeywords',
+        'botAutoScanEnabled',
+        'autoFetchInterval',
+        'sourcesCount',
+        'clientUpdatedAt',
+        'createdAt',
+        'updatedAt'
+      ]) && data.keys().hasOnly([
+        'ownerId',
+        'activeTopicPacks',
+        'customKeywords',
+        'botAutoScanEnabled',
+        'autoFetchInterval',
+        'sourcesCount',
+        'clientUpdatedAt',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid &&
+      data.activeTopicPacks is list && data.activeTopicPacks.size() <= 12 &&
+      (data.activeTopicPacks.size() == 0 || (data.activeTopicPacks[0] is string && data.activeTopicPacks[0].size() >= 1 && data.activeTopicPacks[0].size() <= 40)) &&
+      data.customKeywords is list && data.customKeywords.size() <= 24 &&
+      (data.customKeywords.size() == 0 || (data.customKeywords[0] is string && data.customKeywords[0].size() >= 1 && data.customKeywords[0].size() <= 80)) &&
+      data.botAutoScanEnabled is bool &&
+      data.autoFetchInterval is number && data.autoFetchInterval in [5, 15, 30, 60] &&
+      data.sourcesCount is number && data.sourcesCount >= 0 && data.sourcesCount <= 250 &&
+      data.clientUpdatedAt is string && data.clientUpdatedAt.size() >= 1 && data.clientUpdatedAt.size() <= 40 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidUserNewsSourceItem(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'sourceId',
+        'name',
+        'url',
+        'domain',
+        'defaultCategory',
+        'packId',
+        'kind',
+        'origin',
+        'enabled',
+        'addedAt',
+        'createdAt',
+        'updatedAt'
+      ]) && data.keys().hasOnly([
+        'ownerId',
+        'sourceId',
+        'name',
+        'url',
+        'domain',
+        'defaultCategory',
+        'packId',
+        'kind',
+        'origin',
+        'enabled',
+        'addedAt',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid &&
+      isValidId(data.sourceId) &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+      data.url is string && data.url.size() >= 8 && data.url.size() <= 1000 && data.url.matches('^https?://.+$') &&
+      data.domain is string && data.domain.size() >= 1 && data.domain.size() <= 120 &&
+      data.defaultCategory is string && data.defaultCategory.size() >= 1 && data.defaultCategory.size() <= 80 &&
+      data.packId is string && data.packId.size() <= 40 &&
+      data.kind is string && data.kind in ['rss', 'googlenews', 'hackernews', 'gdelt', 'api'] &&
+      data.origin is string && data.origin in ['seed', 'discovered', 'watchlist', 'keyword', 'custom'] &&
+      data.enabled is bool &&
+      data.addedAt is string && data.addedAt.size() >= 1 && data.addedAt.size() <= 40 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    match /users/{userId}/fetchedArticles/{articleId} {
+      allow get: if isValidId(userId) && isValidId(articleId) && isVerifiedOwner(userId) && (resource == null || existing().ownerId == request.auth.uid);
+      allow list: if isVerifiedOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(userId) && isValidId(articleId) && isVerifiedOwner(userId) && isValidNewsArticle(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && isValidId(articleId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid && isValidNewsArticle(incoming()) && incoming().ownerId == existing().ownerId && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && existing().status != 'archived' && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'notes', 'tags', 'updatedAt', 'title', 'summary', 'keyTakeaway', 'category', 'sentimentLabel', 'sentimentPositive', 'sentimentNeutral', 'sentimentNegative']);
+      allow delete: if isValidId(userId) && isValidId(articleId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid;
+    }
+
+    match /users/{userId}/customSources/{sourceId} {
+      allow get: if isValidId(userId) && isValidId(sourceId) && isVerifiedOwner(userId) && (resource == null || existing().ownerId == request.auth.uid);
+      allow list: if isVerifiedOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(userId) && isValidId(sourceId) && isVerifiedOwner(userId) && isValidCustomSource(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && isValidId(sourceId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid && isValidCustomSource(incoming()) && incoming().ownerId == existing().ownerId && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && incoming().diff(existing()).affectedKeys().hasOnly(['enabled', 'name', 'defaultCategory', 'updatedAt']);
+      allow delete: if isValidId(userId) && isValidId(sourceId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid;
+    }
+
+    match /users/{userId}/watchlistItems/{symbol} {
+      allow get: if isValidId(userId) && isValidId(symbol) && isVerifiedOwner(userId) && (resource == null || existing().ownerId == request.auth.uid);
+      allow list: if isVerifiedOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(userId) && isValidId(symbol) && isVerifiedOwner(userId) && isValidWatchlistItem(incoming()) && incoming().symbol == symbol && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && isValidId(symbol) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid && isValidWatchlistItem(incoming()) && incoming().ownerId == existing().ownerId && incoming().symbol == existing().symbol && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && incoming().diff(existing()).affectedKeys().hasOnly(['exchange', 'companyName', 'priceChangeThresholdPct', 'targetPrice', 'stopLossPrice', 'newsSensitivity', 'notes', 'updatedAt']);
+      allow delete: if isValidId(userId) && isValidId(symbol) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid;
+    }
+
+    match /users/{userId}/financeAlerts/{alertId} {
+      allow get: if isValidId(userId) && isValidId(alertId) && isVerifiedOwner(userId) && (resource == null || existing().ownerId == request.auth.uid);
+      allow list: if isVerifiedOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(userId) && isValidId(alertId) && isVerifiedOwner(userId) && isValidFinanceAlert(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && isValidId(alertId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid && isValidFinanceAlert(incoming()) && incoming().ownerId == existing().ownerId && incoming().symbol == existing().symbol && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && incoming().diff(existing()).affectedKeys().hasOnly(['read', 'updatedAt']);
+      allow delete: if isValidId(userId) && isValidId(alertId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid;
+    }
+
+    match /users/{userId}/newsroomEditions/{editionKey} {
+      allow get: if isValidId(userId) && isValidId(editionKey) && isVerifiedOwner(userId) && (resource == null || existing().ownerId == request.auth.uid);
+      allow list: if isVerifiedOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(userId) && isValidId(editionKey) && isVerifiedOwner(userId) && isValidNewsroomEdition(incoming()) && incoming().editionKey == editionKey && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && isValidId(editionKey) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid && isValidNewsroomEdition(incoming()) && incoming().ownerId == existing().ownerId && incoming().editionKey == existing().editionKey && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && incoming().diff(existing()).affectedKeys().hasOnly(['editionLabel', 'windowLabel', 'mode', 'executiveHighlightsJson', 'quickMetricsJson', 'storiesJson', 'totalCandidatesReviewed', 'updatedAt']);
+      allow delete: if isValidId(userId) && isValidId(editionKey) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid;
+    }
+
+    match /user_news_sources/{userId} {
+      allow get: if isValidId(userId) && isVerifiedOwner(userId) && (resource == null || existing().ownerId == request.auth.uid);
+      allow list: if isVerifiedOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(userId) && isVerifiedOwner(userId) && isValidUserNewsSourcesConfig(incoming()) && incoming().ownerId == userId && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid && isValidUserNewsSourcesConfig(incoming()) && incoming().ownerId == existing().ownerId && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && incoming().diff(existing()).affectedKeys().hasOnly(['activeTopicPacks', 'customKeywords', 'botAutoScanEnabled', 'autoFetchInterval', 'sourcesCount', 'clientUpdatedAt', 'updatedAt']);
+      allow delete: if isValidId(userId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid;
+    }
+
+    match /user_news_sources/{userId}/sources/{sourceId} {
+      allow get: if isValidId(userId) && isValidId(sourceId) && isVerifiedOwner(userId) && (resource == null || existing().ownerId == request.auth.uid) && get(/databases/$(database)/documents/user_news_sources/$(userId)).data.ownerId == request.auth.uid;
+      allow list: if isVerifiedOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(userId) && isValidId(sourceId) && isVerifiedOwner(userId) && isValidUserNewsSourceItem(incoming()) && incoming().sourceId == sourceId && incoming().createdAt == request.time && incoming().updatedAt == request.time && exists(/databases/$(database)/documents/user_news_sources/$(userId)) && get(/databases/$(database)/documents/user_news_sources/$(userId)).data.ownerId == request.auth.uid;
+      allow update: if isValidId(userId) && isValidId(sourceId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid && isValidUserNewsSourceItem(incoming()) && incoming().ownerId == existing().ownerId && incoming().sourceId == existing().sourceId && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'url', 'domain', 'defaultCategory', 'packId', 'kind', 'origin', 'enabled', 'updatedAt']) && get(/databases/$(database)/documents/user_news_sources/$(userId)).data.ownerId == request.auth.uid;
+      allow delete: if isValidId(userId) && isValidId(sourceId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid && get(/databases/$(database)/documents/user_news_sources/$(userId)).data.ownerId == request.auth.uid;
+    }
+  }
+}

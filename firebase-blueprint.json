@@ -1,0 +1,598 @@
+{
+  "entities": {
+    "NewsArticleRecord": {
+      "title": "NewsArticleRecord",
+      "description": "A fetched, crawled, or aggregated news article stored in the user's persistent news database.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID of the user who owns this saved news record."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "Headline of the news article."
+        },
+        "url": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 1000,
+          "pattern": "^https?://.+$",
+          "description": "Canonical HTTP/HTTPS URL of the original article."
+        },
+        "sourceName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Display name of the news outlet or API source."
+        },
+        "sourceDomain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Domain name of the source."
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Assigned topic category."
+        },
+        "publishedRelative": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Published date or relative timestamp string."
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 1500,
+          "description": "Concise summary of the article."
+        },
+        "keyTakeaway": {
+          "type": "string",
+          "maxLength": 600,
+          "description": "Primary key takeaway highlighted by NLP processing."
+        },
+        "sentimentLabel": {
+          "type": "string",
+          "enum": ["Tích cực", "Tiêu cực", "Trung lập"],
+          "description": "Overall sentiment verdict."
+        },
+        "sentimentPositive": {
+          "type": "number",
+          "description": "Positive sentiment percentage (0-100)."
+        },
+        "sentimentNeutral": {
+          "type": "number",
+          "description": "Neutral sentiment percentage (0-100)."
+        },
+        "sentimentNegative": {
+          "type": "number",
+          "description": "Negative sentiment percentage (0-100)."
+        },
+        "fetchedMethod": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "How the article was collected (RSS/Atom, Public API, URL Crawl, AI Biến động)."
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Optional user editorial note."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "maxItems": 12,
+          "description": "Auto-assigned and custom keyword topic tags for filtering and search."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["unread", "reviewed", "archived"],
+          "description": "Workflow reading status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last update timestamp."
+        }
+      },
+      "required": [
+        "ownerId",
+        "title",
+        "url",
+        "sourceName",
+        "sourceDomain",
+        "category",
+        "publishedRelative",
+        "summary",
+        "keyTakeaway",
+        "sentimentLabel",
+        "sentimentPositive",
+        "sentimentNeutral",
+        "sentimentNegative",
+        "fetchedMethod",
+        "notes",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CustomSourceRecord": {
+      "title": "CustomSourceRecord",
+      "description": "A user-configured RSS/Atom, web, or Public API news source persisted in Firestore.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "url": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 1000,
+          "pattern": "^https?://.+$"
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "defaultCategory": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "name",
+        "url",
+        "domain",
+        "defaultCategory",
+        "enabled",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WatchlistItemRecord": {
+      "title": "WatchlistItemRecord",
+      "description": "A user-monitored Vietnam stock ticker with custom price and news alert thresholds.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12,
+          "pattern": "^[A-Z0-9]+$"
+        },
+        "exchange": {
+          "type": "string",
+          "enum": ["HOSE", "HNX", "UPCOM"]
+        },
+        "companyName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "priceChangeThresholdPct": {
+          "type": "number"
+        },
+        "targetPrice": {
+          "type": "number"
+        },
+        "stopLossPrice": {
+          "type": "number"
+        },
+        "newsSensitivity": {
+          "type": "string",
+          "enum": ["bearish", "bullish", "all"]
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "symbol",
+        "exchange",
+        "companyName",
+        "priceChangeThresholdPct",
+        "targetPrice",
+        "stopLossPrice",
+        "newsSensitivity",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FinanceAlertRecord": {
+      "title": "FinanceAlertRecord",
+      "description": "Multi-tier price, volatility, or news alert triggered for a user's stock watchlist.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "warning", "opportunity"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 800
+        },
+        "triggerType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "articleUrl": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "priceSnapshot": {
+          "type": "number"
+        },
+        "changePctSnapshot": {
+          "type": "number"
+        },
+        "read": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "symbol",
+        "severity",
+        "title",
+        "message",
+        "triggerType",
+        "articleUrl",
+        "priceSnapshot",
+        "changePctSnapshot",
+        "read",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "NewsroomEditionRecord": {
+      "title": "NewsroomEditionRecord",
+      "description": "A daily Morning (08:00) or Afternoon (17:00) Top 10 Newsroom briefing edition stored per user.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "editionKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "dateStr": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 10
+        },
+        "editionType": {
+          "type": "string",
+          "enum": ["morning", "afternoon"]
+        },
+        "editionLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "windowLabel": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["gemini", "quantitative"]
+        },
+        "executiveHighlightsJson": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "quickMetricsJson": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "storiesJson": {
+          "type": "string",
+          "maxLength": 16000
+        },
+        "totalCandidatesReviewed": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "editionKey",
+        "dateStr",
+        "editionType",
+        "editionLabel",
+        "windowLabel",
+        "mode",
+        "executiveHighlightsJson",
+        "quickMetricsJson",
+        "storiesJson",
+        "totalCandidatesReviewed",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserNewsSourcesConfigRecord": {
+      "title": "UserNewsSourcesConfigRecord",
+      "description": "User-owned root configuration for persistent news sources, active topic packs, custom keywords, and auto-scan schedule.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "activeTopicPacks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "maxItems": 12
+        },
+        "customKeywords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "maxItems": 24
+        },
+        "botAutoScanEnabled": {
+          "type": "boolean"
+        },
+        "autoFetchInterval": {
+          "type": "number"
+        },
+        "sourcesCount": {
+          "type": "number"
+        },
+        "clientUpdatedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "activeTopicPacks",
+        "customKeywords",
+        "botAutoScanEnabled",
+        "autoFetchInterval",
+        "sourcesCount",
+        "clientUpdatedAt",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserNewsSourceItemRecord": {
+      "title": "UserNewsSourceItemRecord",
+      "description": "Individual news source channel (official 7-pack seed, auto-discovered domain, dynamic Watchlist Google News RSS, or custom feed) synced under user_news_sources.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "sourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "url": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 1000,
+          "pattern": "^https?://.+$"
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "defaultCategory": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "packId": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["rss", "googlenews", "hackernews", "gdelt", "api"]
+        },
+        "origin": {
+          "type": "string",
+          "enum": ["seed", "discovered", "watchlist", "keyword", "custom"]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "addedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "sourceId",
+        "name",
+        "url",
+        "domain",
+        "defaultCategory",
+        "packId",
+        "kind",
+        "origin",
+        "enabled",
+        "addedAt",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/fetchedArticles/{articleId}": {
+      "schema": {
+        "$ref": "#/entities/NewsArticleRecord"
+      },
+      "description": "User-owned database collection of fetched and analyzed news articles."
+    },
+    "/users/{userId}/customSources/{sourceId}": {
+      "schema": {
+        "$ref": "#/entities/CustomSourceRecord"
+      },
+      "description": "User-owned database collection of configured RSS, web, and Public API news sources."
+    },
+    "/users/{userId}/watchlistItems/{symbol}": {
+      "schema": {
+        "$ref": "#/entities/WatchlistItemRecord"
+      },
+      "description": "User-owned stock watchlist configurations synced across devices."
+    },
+    "/users/{userId}/financeAlerts/{alertId}": {
+      "schema": {
+        "$ref": "#/entities/FinanceAlertRecord"
+      },
+      "description": "User-owned real-time price and news alerts for watched stocks."
+    },
+    "/users/{userId}/newsroomEditions/{editionKey}": {
+      "schema": {
+        "$ref": "#/entities/NewsroomEditionRecord"
+      },
+      "description": "User-owned daily Morning (08:00) and Afternoon (17:00) Top 10 Newsroom briefing editions."
+    },
+    "/user_news_sources/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserNewsSourcesConfigRecord"
+      },
+      "description": "User-owned persistent source packs, keywords, and auto-scan schedule settings."
+    },
+    "/user_news_sources/{userId}/sources/{sourceId}": {
+      "schema": {
+        "$ref": "#/entities/UserNewsSourceItemRecord"
+      },
+      "description": "User-owned persistent news feeds across 7 official packs, auto-discovered domains, and dynamic Watchlist RSS streams."
+    }
+  }
+}

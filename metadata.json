@@ -1,0 +1,6 @@
+{
+  "name": "Lăng Kính — Tổng Hợp & Phân Tích Tin Tức",
+  "description": "Nền tảng tổng hợp tin tức đa nguồn, đối chiếu góc nhìn, phân tích sắc thái và kiểm chứng bối cảnh theo thời gian thực.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

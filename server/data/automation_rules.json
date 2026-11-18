@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-18T12:59:35.955Z",
+  "stats": {
+    "totalEvaluated": 0,
+    "blockedNoiseCount": 0,
+    "prioritizedCount": 0,
+    "webhookAlertsTriggered": 0
+  },
+  "rules": [
+    {
+      "id": "rule-block-noise",
+      "name": "Luật 1 — Chặn nhiễu & Tin quảng cáo / PR",
+      "conditionSummary": "Nếu tiêu đề hoặc tóm tắt chứa từ khóa quảng cáo, giật gân hoặc loại trừ",
+      "actionSummary": "Tự động ẩn / bỏ qua trước khi xuất bản lên Bản tin",
+      "enabled": true,
+      "conditionType": "keyword_exclude",
+      "actionType": "block_noise",
+      "keywords": [
+        "quảng cáo",
+        "tài trợ",
+        "bài pr",
+        "khuyến mãi sốc",
+        "mini game",
+        "trúng thưởng",
+        "giật gân",
+        "tin đồn thất thiệt"
+      ],
+      "hitCount": 0,
+      "builtin": true
+    },
+    {
+      "id": "rule-pin-watchlist-macro",
+      "name": "Luật 2 — Gắn nhãn Ưu tiên cao (Watchlist & Vĩ mô)",
+      "conditionSummary": "Nếu bài viết chứa mã cổ phiếu Watchlist hoặc từ khóa vĩ mô trọng yếu",
+      "actionSummary": "Gắn cờ \"Ưu tiên cao\" (+22 điểm xếp hạng) & đẩy lên đầu Bản tin",
+      "enabled": true,
+      "conditionType": "watchlist_or_macro",
+      "actionType": "pin_priority",
+      "keywords": [
+        "lãi suất",
+        "tỷ giá",
+        "thuế",
+        "đhđcđ",
+        "đại hội cổ đông",
+        "vn-index",
+        "ngân hàng nhà nước",
+        "fed",
+        "gdp",
+        "cổ tức"
+      ],
+      "customTag": "Ưu tiên cao",
+      "hitCount": 0,
+      "builtin": true
+    },
+    {
+      "id": "rule-alert-negative-watchlist",
+      "name": "Luật 3 — Cảnh báo tức thời Telegram / Lark Bot",
+      "conditionSummary": "Nếu phát hiện tin sắc thái Tiêu cực mạnh liên quan tới mã trong Watchlist",
+      "actionSummary": "Bắn thông báo khẩn sang Telegram / Lark Bot ngay lập tức",
+      "enabled": true,
+      "conditionType": "negative_watchlist_alert",
+      "actionType": "send_webhook_alert",
+      "keywords": [
+        "thủng",
+        "giảm mạnh",
+        "bán tháo",
+        "thua lỗ",
+        "vi phạm",
+        "cảnh báo",
+        "nợ xấu",
+        "giảm sàn",
+        "rủi ro"
+      ],
+      "sentimentTrigger": "Tiêu cực",
+      "hitCount": 0,
+      "builtin": true
+    }
+  ]
+}
